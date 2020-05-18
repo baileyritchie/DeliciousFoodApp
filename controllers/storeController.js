@@ -51,10 +51,28 @@ exports.createStore = async (req, res) => {
 };
 
 exports.getStores = async (req, res) => {
+  const page = req.params.page || 1;
+  const limit = 4;
+  const skip = (page * limit) - limit;
+  
   // 1. Query the database for a list of all stores
-  const stores = await Store.find();
-  res.render('stores', { title: 'Stores', stores });
+  const storesPromise = Store
+    .find()
+    .skip(skip)
+    .limit(limit)
+    .sort({created:'desc'});
+    
+  const countPromise = Store.count();
+  const [stores,count] = await Promise.all([storesPromise,countPromise]);
+  const pages = Math.ceil(count/limit);
+  if(!stores.length && skip){
+    req.flash('info',`Page ${page} does not exist. See last page instead...`);
+    res.redirect(`/stores/page/${pages}`);
+    return;
+  }
+  res.render('stores', { title: 'Stores', stores,pages,count,page });
 };
+
 const confirmOwner = (store,user) =>{
   if (!store.author.equals(user._id)) {
     throw Error('You must own a store, in order to edit.')
@@ -83,7 +101,7 @@ exports.updateStore = async (req, res) => {
 };
 
 exports.getStorebySlug = async (req, res, next) => {
-  const store = await (await Store.findOne({ slug: req.params.slug })).populate('author reviews');
+  const store = await Store.findOne({ slug: req.params.slug }).populate('author reviews');
   if (!store) return next();
   res.render('store', { store, title: store.name });
 };
@@ -152,3 +170,8 @@ exports.getHearts = async (req,res) => {
   res.render('stores',{title: 'Hearted Stores',stores});
 };
 
+exports.getTop = async (req,res) => {
+  const stores = await Store.getTopStores();
+  // res.json(stores);
+  res.render('topStores', {title:'Top Stores',stores});
+}
