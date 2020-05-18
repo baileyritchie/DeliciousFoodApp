@@ -3,6 +3,8 @@ extends layout
 block content
     .inner
         h2 Register
+        p Currently, this mail server isn't connected. Read the ReadMe or email me at baileylritchie@gmail.com for access! 
+            a(href="https://github.com/baileyritchie/deliciousfoodapp") #{' '} Github
         form.form(action="/register" method="POST")
             label(for="name") Name
             input(type="name" name="name" )
