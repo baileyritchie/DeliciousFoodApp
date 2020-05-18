@@ -21,6 +21,8 @@ mongoose.connection.on('error', (err) => {
 // must important all of the models concept called singleton
 require('./models/Store');
 require('./models/User');
+require('./models/Review');
+
 
 
 // Start our app!
